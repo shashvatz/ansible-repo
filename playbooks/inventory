@@ -1,0 +1,16 @@
+[webservers]
+rhel1.mshome.net
+
+[application]
+rhel2
+
+[staging]
+centos1
+
+[development]
+rheloc
+
+[production:children]
+application
+webservers
+

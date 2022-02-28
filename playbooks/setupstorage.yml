@@ -1,0 +1,77 @@
+---
+- name: set up storage
+  hosts: application
+  become: yes
+  vars:
+    disknum: 0
+
+  tasks:
+    - name: partition 2nd disk
+      parted: 
+        number: 1
+        device: /dev/sdb
+        part_end: 5GiB
+        state: present
+      when: ansible_devices['sdb'] is defined
+     
+    - name: gather facts
+      setup:
+        gather_subset: hardware
+       
+    - name: create vg
+      lvg:
+        vg: vgdata
+        pvs: /dev/sdb1
+        state: present
+        pesize: 8M
+      when: ansible_devices.sdb.partitions.sdb1 is defined  
+    
+    - name: gather facts
+      setup:
+        gather_subset: hardware
+
+    - name: show vg info
+      debug:
+        msg: "Insufficient disk space on volume group"
+      when: ((ansible_lvm.vgs.vgdata.size_g)|float) < 5.0
+
+    - name: create lv
+      lvol:
+        lv: lvdata
+        vg: vgdata
+        size: 1G 
+        state: present
+      when: ansible_lvm.vgs.vgdata is defined and 'lvdata' not in ansible_lvm.lvs
+
+    - name: gather facts
+      setup:
+        gather_subset: hardware
+       
+    - name: show lv info
+      debug:
+        msg: " {{ansible_lvm.lvs.lvdata.size_g}} GiB is the size of lvdata"
+    
+    - name: format lv
+      filesystem:
+        dev: /dev/vgdata/lvdata
+        fstype: ext3
+        resizefs: yes
+      when: ' "lvdata" in ansible_lvm.lvs '
+
+    - name: mount lv
+      mount:
+        path: /data
+        src: /dev/vgdata/lvdata
+        opts: defaults
+        fstype: ext3
+        state: mounted
+
+      
+
+
+
+
+
+
+
+

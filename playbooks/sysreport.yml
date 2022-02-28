@@ -1,0 +1,71 @@
+---
+- name: create report
+  hosts: localhost
+  become: no
+
+  tasks:
+      
+    - name: gather stat for report
+      stat:
+        path: hwtemplate.txt
+      register: result
+
+    - name: create report file
+      copy:
+        content: |
+            NAME=
+            IPADDRESS=
+            TOTAL_MEMORY=
+            NIC_NAME=
+            SECOND_NIC_NAME=
+        dest: hwtemplate.txt
+      when: not result.stat.exists
+
+- name: generate report for all
+  hosts: all,!rheloc,!localhost
+  become: yes
+
+  tasks:
+
+    - name: gather stat for report
+      stat:
+        path: /root/hwtemplate.txt
+      register: result
+
+    - name: make sure report exists
+      copy:
+        src: hwtemplate.txt
+        dest: /root/hwtemplate.txt
+        mode: 0664
+      when: not result.stat.exists
+
+    - name: populate the report
+      lineinfile:
+        path: /root/hwtemplate.txt
+        line: "NAME={{ansible_facts.fqdn}}"
+        regexp: ^NAME
+        state: present
+    - lineinfile:
+        line: "IPADDRESS={{ansible_facts.default_ipv4.address}}"
+        path: /root/hwtemplate.txt
+        regexp: ^IPADD
+        state: present
+    - lineinfile:
+        line: "TOTAL_MEMORY={{ansible_facts.memtotal_mb}}"
+        path: /root/hwtemplate.txt
+        regexp: ^TOTA
+        state: present
+
+    - lineinfile:
+        line: "NIC_NAME={{ansible_interfaces[0]}}"
+        path: /root/hwtemplate.txt
+        regexp: ^NIC
+        state: present
+
+    - lineinfile:
+        line: "SECOND_NIC_NAME={{ ansible_interfaces[1] is defined | ternary(ansible_interfaces[1],'NONE') }}"
+        regexp: ^SECO
+        path: /root/hwtemplate.txt
+        state: present
+
+

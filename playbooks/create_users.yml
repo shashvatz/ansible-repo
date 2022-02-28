@@ -1,0 +1,25 @@
+---
+- name: create users
+  hosts: all
+  
+  vars_files: users_pass.yml
+
+  tasks:
+    - name: create Profs group
+      group:
+        name: 'profs'
+        state: present
+      when: '"application" in group_names'
+
+    - name: create users in profs
+      user:
+        name: "{{ item.name }}"
+        groups: "{{ item.department }}"
+        append: yes
+        password: "{{ item.password | password_hash('sha256') }}"
+      loop: "{{ users }}"
+      when: item.department == 'profs' and 'application' in group_names
+
+
+
+    

@@ -1,0 +1,17 @@
+---
+- name: use secret
+  hosts: staging
+  remote_user: root
+  gather_facts: no
+  vars_files:
+    cloudpass.yml
+
+  tasks:
+    - name: create file
+      copy:
+        content: |
+            CLOUDID={{ CLOUDID }}
+            CLOUDPASS={{ CLOUDPASS }}
+        dest: /root/cloudcreds.txt
+
+

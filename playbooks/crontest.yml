@@ -1,0 +1,14 @@
+---
+- name: cron test
+  hosts: localhost
+  become: yes
+  tasks:
+    - name: cron job
+      cron: 
+        name: test-cron
+        special_time: hourly
+        #minute: '0'
+        #hour: '*'
+        job: 'echo date > /var/test/log.txt'
+        user: root
+        cron_file: test-cron

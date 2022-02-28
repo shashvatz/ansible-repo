@@ -1,0 +1,101 @@
+---
+- name: deploy web server
+  hosts: all
+  remote_user: root
+  gather_facts: no
+  vars:
+    packages:
+      - httpd
+    services:
+      - httpd
+      - firewalld
+
+  tasks:
+         # - name: install packages
+         #   yum:
+         #     name: "{{ packages }}"
+         #     state: installed
+          - name: start services
+            service:
+              name: "{{ item }}"
+              state: started
+              enabled: true
+            loop: "{{ services }}"
+
+          - name: create group
+            group:
+              name: webapp
+              state: present
+
+          - name: make web data dir
+            file:
+              path: /webapp
+              state: directory
+              group: webapp
+              mode: 02775
+              setype: httpd_sys_content_t
+          - name: set SELinux context
+            sefcontext:
+              setype: httpd_sys_content_t
+              state: present
+              target: '/webapp(/.*)?'
+
+          - name: create index file
+            copy:
+              content: "Great if you see this !!"
+              dest: /webapp/index.html
+
+          - name: link webroot
+            file:
+              src: /webapp
+              dest: /var/www/html/webapp
+              state: link
+              group: webapp
+              
+
+            
+          - name: open firewall
+            firewalld:
+               service: http
+               state: enabled
+               immediate: yes
+               permanent: yes
+            notify: restart httpd
+
+  handlers:
+
+          - name: restart httpd
+            service: 
+               name: httpd
+               state: restarted
+
+
+- name: check accessibility of web server
+  hosts: localhost
+  become: no
+  vars:
+    check_url: "http://rhel1/webapp/"
+
+  tasks:
+    
+    - name: check web url
+      block:
+        - name: access url
+          uri:
+            url: "{{ check_url }}"
+            status_code: 200
+            return_content: yes
+          register: reply
+
+        - name: show response
+          debug:
+            msg:
+              - " The reply from {{ check_url }} is :"
+              - "{{ reply.content }}"
+
+      rescue:
+        - name: show message
+          debug:
+            msg: "Web URL is not accessible at all"
+
+        

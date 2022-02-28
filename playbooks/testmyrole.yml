@@ -1,0 +1,19 @@
+---
+- name: test the role myrole
+  hosts: all
+  #remote_user: abhi
+  #become: yes
+  # become_user: root
+  #become_ask_pass: yes
+  gather_facts: no
+  vars:
+    - default_prompt: '[Hello \u on \h in \W]\$ '
+    - prompt_color: yellow  
+  roles:
+    - myrole
+
+  tasks:
+    - name: say hello
+      debug:
+        msg : "Hello !!!"
+

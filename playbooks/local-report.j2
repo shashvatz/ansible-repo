@@ -1,0 +1,14 @@
+{{ ansible_managed_staus | default("This file is Ansible Managed") }}
+ 
+127.0.0.1 localhost localhost localhost localhost
+::1/128 localhost localhost localhost localhost
+
+{% for host in groups['all'] %}
+{{ hostvars[host]['ansible_facts']['default_ipv4']['address'] }}  {{ hostvars[host]['ansible_facts']['fqdn']}}  {{  hostvars[host]['ansible_facts']['hostname'] }}
+{% endfor %}
+
+
+
+
+
+

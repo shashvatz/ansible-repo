@@ -1,0 +1,10 @@
+  - name: show error small size lv
+    debug:
+      msg: "Not enough space of {{ item.size1 }} for logical volume {{ item.name }}, so creating of size {{ item.size2 }}"
+  - name: small size lv
+    lvol:
+      vg: "{{ item.vgroup }}"
+      lv: "{{ item.name }}"
+      size: "{{ item.size2 }}"
+      state: present
+

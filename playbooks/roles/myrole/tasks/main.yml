@@ -1,0 +1,11 @@
+---
+# tasks file for myrole
+
+- name: deploy .bashrc
+  template: 
+    src: templates/_bashrc.j2
+    dest: "{{ skel_dir }}/.bash_profile"
+    owner: "{{ bash_user | default('root') }}"
+    group: "{{ bash_group | default('root') }}"
+    mode: 0644
+

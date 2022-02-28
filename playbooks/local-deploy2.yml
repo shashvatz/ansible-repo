@@ -1,0 +1,22 @@
+---
+- name: local hardware configuration report
+  hosts: all
+  remote_user: root
+  vars: 
+
+  tasks:
+    - name: create directory
+      file:
+        path: /etc/report
+        state: directory
+        owner: abhi
+        group: abhi
+        mode: 0755
+
+    - name: create report
+      template:
+        src: local-report2.j2
+        dest: /etc/report/hw-report.txt
+        mode: 0644
+      vars:
+        #ansible_managed: Ansible Managed {file} modified by {uid} on %d-%m-Y

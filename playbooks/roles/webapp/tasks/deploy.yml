@@ -1,0 +1,8 @@
+---
+- name: deploy webapp
+  template:
+    src: webcontent.j2
+    dest: /var/www/html/index.html
+    mode: 0644
+    #setype: httpd_sys_content_t
+

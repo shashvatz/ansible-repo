@@ -1,0 +1,108 @@
+---
+- name: create lvm conditionally
+  hosts: application
+  become: yes
+#  gather_facts: no
+  vars_files:
+    storage_vars.yml
+  vars:
+    disk_name: "{{item.devices|basename}}"
+    disk_number: "{{item.devices|basename}}{{item.number}}"
+    vgroup: "apache-vg"
+  tasks:
+
+    - name: create partition
+      parted:
+        number: "{{ item.number }}"
+        device: "{{ item.devices }}"
+        part_start: "{{ item.start }}"
+        part_end: "{{ item.end }}"
+        state: present
+      register: result  
+      loop: "{{ partitions }}"
+      when: ansible_facts['devices'][disk_name] is defined and ansible_facts['devices'][disk_name]['partitions'][disk_number] is undefined
+
+#    - debug:
+#        var: result
+#    - name: prepare for lvm
+#      package:
+#        name: lvm2
+#        state: present
+        
+
+    - block:
+        - name: create volume group
+          lvg:
+            pvs: "{{ item.devices }}"
+            vg: "{{ item.name }}"
+            state: present
+          loop: "{{ volume_groups }}"      
+          when: ( item.devices.split(',')[0]|basename in ansible_devices) is defined
+          register: vgresult
+          #failed_when: false
+          #ignore_errors: yes
+      rescue:
+        - debug:
+            var: vgresult.results[0].msg
+        
+
+#      - name: show error
+#          fail:
+#            msg: "{{ vgresult.results[0].msg }}"
+#          when: not vgresult.changed
+#      when: (ansible_lvm['vgs'][vgroup] is undefined )
+    
+
+    - name: gather facts again
+      setup:
+        gather_subset: all
+      when: vgresult.changed
+    - name: create lv
+      lvol:
+        vg: "{{ item.vgroup }}"
+        lv: "{{ item.name }}"
+        size: "{{ item.size1 }}"
+        state: present
+      loop: "{{ logical_volumes }}"
+      when: (ansible_lvm['vgs'][item.vgroup] is defined ) and (item.name not in ansible_lvm['lvs']) and ((ansible_lvm['vgs'][item.vgroup]['free_g'] | float) > (item.size1|regex_replace('[^0-9.]', '')|float)/1024 )
+#      when: (item.name not in ansible_lvm['lvs']) and ((ansible_facts['lvm']['vgs'][item.vgroup]['size_g'] | float) > 1.5 )
+    
+    - name: create small lvm
+      include_tasks: smallvm.yml
+      loop: "{{ logical_volumes }}"
+      when: (item.name not in ansible_lvm['lvs']) and (ansible_lvm['vgs'][item.vgroup] is defined ) and ((ansible_lvm['vgs'][item.vgroup]['free_g'] | float) < (item.size1|regex_replace('[^0-9.]', '')|float)/1024 )
+
+
+    - name: show lvm
+      debug:
+        var: ansible_lvm['lvs']
+
+    - name: gather facts again
+      setup:
+        gather_subset: all
+
+    - name: make filesystem
+      filesystem:
+        dev: "/dev/{{ item.vgroup }}/{{ item.name }}"
+        fstype: xfs
+      loop: "{{ logical_volumes }}"
+      when: "(item.name in ansible_lvm['lvs'])"
+#    - name: ensure correct size for lvm
+#      lvol:
+#        vg: "{{ item.vgroup }}"
+#        lv: "{{ item.name }}"
+#        size: "{{ item.size }}"
+#        force: yes
+#        resizefs: yes
+#      loop: "{{ logical_volumes }}"
+
+    - name: mount lvm
+      mount:
+        path: "{{ item.mount_path }}"
+        src: "/dev/{{ item.vgroup }}/{{ item.name }}"
+        fstype: xfs
+        opts: defaults
+        state: mounted
+      loop: "{{ logical_volumes }}"
+      when: "(item.name in ansible_lvm['lvs'])"  
+

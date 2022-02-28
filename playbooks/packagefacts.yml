@@ -1,0 +1,22 @@
+---
+- name: gather package facts
+  hosts: all
+  remote_user: root
+  gather_facts: no
+  vars:
+    pkgs:
+      - kernel
+      - bash
+      - glibc
+  tasks:
+    - name: gather package facts
+      package_facts:
+        manager: auto
+
+    - name: print to file
+      lineinfile:
+        line: "{{ item }} = {{ ansible_facts.packages[item][0].version }}"
+        regexp: "^{{ item }}"
+        dest: /root/packages.txt
+      loop: "{{ pkgs }}"
+

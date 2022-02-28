@@ -1,0 +1,64 @@
+---
+- name: create users
+  hosts: all
+  vars_files: 
+    - secret.yml
+    - users.txt
+  
+  remote_user: root
+  vars:
+    groupnames:
+      - admins
+      - developers
+      - managers
+  
+#  pre_tasks:
+#    - name: get users list
+#      get_url:
+#        url: http://rhel1/webapp/users.txt
+#        dest: ~/users.txt
+#        force: yes
+        
+  tasks:
+    - name: remove users
+      user:
+        name: "{{ item.username }}"
+        state: absent
+        remove: yes
+        force: yes
+      loop: "{{ users }}" 
+        
+  
+    - name: create groups
+      group:
+        name: 
+          "{{ item }}"
+        state: present
+      loop: "{{ groupnames }}"  
+ 
+    - name: create users for managers
+      user:
+        name: "{{ item.username }}"
+        groups: "{{ item.job }}"
+        uid: "{{ item.uid }}"
+        password: "{{ manager_pw | password_hash('sha512','secretsalt') }}"
+      loop: "{{ users }}"
+      when: item.job == "managers" and "production" in group_names
+        
+    - name: create users for developers
+      user:
+        name: "{{ item.username }}"
+        groups: "{{ item.job }}"
+        uid: "{{ item.uid }}"
+        password: "{{ 'redhat' | password_hash('sha512','secretsalt') }}"
+      loop: "{{ users }}"
+      when: item.job == 'developers' and 'webserver' in group_names
+    
+    - name: create users for admins
+      user:
+        name: "{{ item.username }}"
+        groups: "{{ item.job }}"
+        uid: "{{ item.uid }}"
+        password: "{{ admin_pw | password_hash('sha512','secretsalt') }}"
+      loop: "{{ users }}"
+      when: item.job == 'admins' and 'staging' in group_names

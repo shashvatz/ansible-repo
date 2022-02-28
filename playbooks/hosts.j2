@@ -1,0 +1,14 @@
+
+{% set ansible_managed = "ansible Managed" %}
+{{ ansible_managed }}
+
+
+127.0.0.1 localhost localhost localhost localhost
+::1/128 localhost localhost localhost localhost
+
+
+{% for host in groups['all'] %}
+{{hostvars[host].ansible_default_ipv4['address']}} {{hostvars[host]['ansible_fqdn']}} {{hostvars[host]['ansible_hostname']}} 
+{% endfor %}
+
+

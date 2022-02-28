@@ -1,0 +1,8 @@
+---
+# defaults file for myrole
+
+skel_dir: '/root'
+default_prompt: '[Hello \u welcome to \W dir on \h]\$ '
+
+# colors can be red, yellow, blue, normal
+prompt_color: normal

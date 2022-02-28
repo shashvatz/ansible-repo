@@ -1,0 +1,26 @@
+---
+- name: edit local HW report
+  hosts: all
+  become: no
+
+  tasks:
+    - name: edit Server line
+      lineinfile:
+        path: /etc/report/hw-report.txt
+        regexp: '^Server'
+        line: 'Server :  	{{ ansible_fqdn }}'
+        state: present
+
+    - name: edit sda line
+      lineinfile:
+        path: /etc/report/hw-report.txt
+        line: 'SDA Disk Size: 	{% if ansible_devices.sda is defined %}{{ ansible_devices.sda.size }}{% else %}NONE{% endif %}'
+        regexp: '^SDA'
+        state: present
+    
+    - name: edit vda line
+      lineinfile:
+        path: /etc/report/hw-report.txt
+        line: 'VDA Disk Size: 	{{ ansible_devices.vda is defined | ternary( ansible_devices.vda.size,"NONE") }}'
+        regexp: ^VDA
+        state: present

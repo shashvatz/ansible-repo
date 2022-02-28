@@ -1,0 +1,31 @@
+---
+
+partitions:
+  - number: 2
+    start: 5GiB 
+    end: 7GiB
+    devices: /dev/sda
+
+  - number: 2
+    start: 1MiB
+    end: 259MiB
+    devices: /dev/sdb
+
+
+volume_groups:
+  - name: apache-vg
+    devices: /dev/sda2
+
+
+logical_volumes:
+  - name: content-lv
+    size1: 256M
+    size2: 128M
+    vgroup: apache-vg
+    mount_path: /tmp/www
+
+  - name: logs-lv
+    size1: 2512M
+    size2: 256M
+    vgroup: apache-vg
+    mount_path: /tmp/log/httpd

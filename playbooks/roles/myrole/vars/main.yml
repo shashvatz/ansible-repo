@@ -1,0 +1,4 @@
+---
+# vars file for myrole
+
+skel_dir: '/root'

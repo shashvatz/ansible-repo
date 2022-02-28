@@ -1,0 +1,12 @@
+---
+- name: test haproxy
+  hosts: development
+  become: yes
+  roles:
+      - name: geerlingguy.haproxy
+        vars:
+           haproxy_backend_servers:
+            - name: rhel1
+              address: 172.18.148.199
+            - name: rhel2
+              address: 172.18.157.172

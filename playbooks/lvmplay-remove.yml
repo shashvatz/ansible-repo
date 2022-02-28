@@ -1,0 +1,49 @@
+---
+- name: create lvm
+  hosts: application
+  become: yes
+#  gather_facts: no
+  vars_files:
+    storage_vars.yml
+  
+  vars:
+    part_list: "{{ volume_groups[0].devices.split(',') }}"
+  
+  tasks:
+#    - set_fact:
+ #       part_list: "{{ parts.split(',') }}"
+  
+    - name: unmount lvm
+      mount:
+        path: "{{ item.mount_path }}"
+        src: "/dev/{{ item.vgroup }}/{{ item.name }}"
+        fstype: xfs
+        state: absent
+        
+      loop: "{{ logical_volumes }}"
+    
+    - name: delete lv
+      lvol:
+        vg: "{{ item.vgroup }}"
+        lv: "{{ item.name }}"
+        state: absent
+        force: yes
+      loop: "{{ logical_volumes }}"
+      when: item.name in ansible_lvm['lvs']
+
+    - name: remove volume group
+      lvg:
+        pvs: "{{ item.devices }}"
+        vg: "{{ item.name }}"
+        state: absent
+      loop: "{{ volume_groups }}"      
+
+    - name: delete prtition
+      parted:
+        number: "{{ item|basename|regex_replace('[^0-9.]', '') }}"
+        device: "/dev/{{ item|basename|regex_replace('[0-9.]', '') }}"
+        state: absent
+      loop: "{{ part_list }}"
+    - name: test
+      debug:
+        msg: "{{ part_list }}"

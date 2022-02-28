@@ -1,0 +1,12 @@
+{{ ansible_managed | comment }}
+ 
+Server :  	{{ ansible_facts['hostname'] }}
+OS type:	{{ ansible_distribution }}
+OS version:	{{ ansible_distribution_version }}
+Processors: 	{{ ansible_processor_count }}
+BIOS version:	{{ ansible_bios_version }}
+Total memory:	{{ ansible_memtotal_mb }} MiB
+IP Address:	{{ ansible_default_ipv4.address }}
+VDA Disk Size: 	{{ ansible_devices.vda is defined | ternary(ansible_devices.vda.size,'NONE') }}
+SDA Disk Size: 	{{ ansible_devices.sda is defined | ternary(ansible_devices.sda.size,'NONE') }}
+

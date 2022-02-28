@@ -1,0 +1,17 @@
+---
+- name: test
+  hosts: localhost
+
+  vars_files:
+    storage_vars.yml
+  
+  vars:
+    path: sdb2
+#    test:
+#      number: '{{ item|basename|regex_replace(s, "[^0-9.]", "")  }}'
+#      # device: "{{ item
+#    loop: "{{ volume_group.devices }}"
+  tasks:
+    - name: print
+      debug:
+        var: '{{ path|basename|regex_replace("[0-9.]", "")  }}'

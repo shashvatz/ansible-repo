@@ -1,0 +1,13 @@
+---
+- name: test selinux 
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: set sefcontext
+      sefcontext:
+        target: '/webtrial(/.*)?'
+        setype: httpd_sys_content_t
+        state: present
+    - name: restore
+      command: 'restorecon -r /webtrial'

@@ -1,0 +1,23 @@
+---
+- name: set up storage
+  hosts: webserver
+  become: yes
+  vars:
+    disknum: 0
+
+  tasks:
+    - name: check if server has 2nd disk
+      set_fact: disknum={{ disknum | int +1 }}
+
+#      debug:
+#        msg: "{{ item.key }}" 
+         # - item.key
+         # - item.value
+#          - item.value.partitions.count()
+      when:
+        - (item.key  | regex_search ('sd.*'))
+#        - item.value.partitions is search(ansible_facts.distribution | lower)
+      loop: "{{ ansible_devices | dict2items }}"
+    - name: print number
+      debug:
+        var: disknum

@@ -1,0 +1,27 @@
+---
+# tasks file for webapp
+- 
+- name: install packages
+  yum: 
+    name: "{{ pkgs }}"
+    state: present
+- name: start services
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop: "{{ svcs }}"
+
+- name: open firewall
+  firewalld:
+    service: "{{ item }}"
+    state: enabled
+    immediate: yes
+    permanent: yes
+  loop: "{{ rules }}"
+  notify: restart httpd
+
+- name: deploy
+  include_tasks:
+    deploy.yml
+    

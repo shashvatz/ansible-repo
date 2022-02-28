@@ -1,0 +1,21 @@
+---
+- name: create lvm
+  hosts: localhost
+  become: yes
+#  gather_facts: no
+  vars_files:
+    storage_vars.yml
+  vars:
+    disk_name: "{{item.devices|basename}}"
+    disk_number: "{{item.devices|basename}}{{item.number}}"
+  tasks:
+
+    - name: create partition
+      parted:
+        number: "{{ item.number }}"
+        device: "{{ item.devices }}"
+        part_start: "{{ item.start }}"
+        part_end: "{{ item.end }}"
+        state: present
+      loop: "{{ partitions }}"
+      when: ansible_devices.disk_name is defined and ansible_facts['devices'][disk_name]['partitions'][disk_number] is undefined

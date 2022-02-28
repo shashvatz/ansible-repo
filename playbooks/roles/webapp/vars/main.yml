@@ -1,0 +1,11 @@
+---
+# vars file for webapp
+  pkgs:
+    - httpd
+    - firewalld
+  svcs:
+    - httpd
+    - firewalld
+  rules: 
+    - http
+  

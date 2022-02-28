@@ -1,0 +1,17 @@
+ users:
+   - username: user1
+     job: managers
+     uid: 2001
+   - username: user2
+     job: developers
+     uid: 2002
+   - username: user3
+     job: admins
+     uid: 2003
+   - username: user4
+     job: managers
+     uid: 2004
+   - username: user5
+     job: admins
+     uid: 2005
+
