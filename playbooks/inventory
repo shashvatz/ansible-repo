@@ -1,14 +1,11 @@
 [webservers]
-rhel1.mshome.net
+rhel11
 
 [application]
 rhel2
 
-[staging]
-centos1
-
 [development]
-rheloc
+rhel4
 
 [production:children]
 application
